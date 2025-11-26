@@ -15,7 +15,6 @@ Penelitian ini menerapkan paradigma baru dalam deteksi phishing yang berbeda sig
 | **Preprocessing** | Normalisasi dan scaling fitur numerik | Character encoding dan tokenization |
 | **Representasi** | Tabular data (structured) | Sequential data (time-series like) |
 | **Learning Mechanism** | Pattern recognition dari fitur terstruktur | Pattern recognition dari karakter sequential |
-| **Model Architecture** | Traditional ML (SVM, RF) atau Simple NN | Deep Learning (CNN-LSTM hybrid) |
 | **Interpretability** | Feature importance analysis | Character-level attention dan SHAP |
 | **Adaptability** | Memerlukan update fitur untuk pola baru | Adaptif terhadap pattern URL yang berkembang |
 
