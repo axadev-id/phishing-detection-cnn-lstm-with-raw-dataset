@@ -63,7 +63,7 @@ Karakteristik URL:
 ├── Panjang maksimum: 2,048+ karakter
 ├── Panjang rata-rata: 87 karakter
 ├── Median panjang:    65 karakter
-└── Max length model:  200 karakter (95th percentile)
+└── Max length model:  175 karakter (95th percentile)
 ```
 
 ### Format Data Raw
@@ -88,7 +88,7 @@ Model menggunakan arsitektur hybrid yang menggabungkan kekuatan Convolutional Ne
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    INPUT LAYER                              │
-│   Raw URL String → Character Sequence (200 chars)           │
+│   Raw URL String → Character Sequence (175 chars)           │
 └───────────────────────────┬─────────────────────────────────┘
                             │
 ┌───────────────────────────▼─────────────────────────────────┐
@@ -159,7 +159,7 @@ Model menggunakan arsitektur hybrid yang menggabungkan kekuatan Convolutional Ne
 
 #### 1. **Embedding Layer**
 - Mengkonversi setiap karakter menjadi vektor dense 128-dimensi
-- Vocabulary mencakup 102 karakter unik (huruf, angka, simbol URL)
+- Vocabulary mencakup 97 karakter unik (huruf, angka, simbol URL)
 - Memungkinkan model belajar representasi semantik dari karakter
 
 #### 2. **Convolutional Layers**
@@ -238,14 +238,11 @@ Inference Time: ~5ms per URL
 │  Step 1: Build Vocabulary                                   │
 │  ───────────────────────                                    │
 │  • Extract all unique characters from 98K URLs              │
-│  • Found: 100 unique characters                             │
+│  • Found: 97 unique characters                              │
 │    - Letters: a-z, A-Z                                      │
 │    - Digits: 0-9                                            │
 │    - Special: :/?#[]@!$&'()*+,;=.-_%~                       │
-│  • Add special tokens:                                      │
-│    - <PAD> (index 0): untuk padding                         │
-│    - <UNK> (index 1): untuk unknown character               │
-│  • Total vocabulary size: 102                               │
+│  • Total vocabulary size: 97                                │
 └─────────────────────────┬───────────────────────────────────┘
                           │
 ┌─────────────────────────▼───────────────────────────────────┐
@@ -264,17 +261,17 @@ Inference Time: ~5ms per URL
 │          ↓                                                  │
 │  Encode: [42,78,78,68,77,12,18,18,35,...]                   │
 │          ↓                                                  │
-│  Pad/Truncate to length 200                                 │
+│  Pad/Truncate to length 175                                 │
 │          ↓                                                  │
-│  Output: [42,78,78,...,0,0,0,0] (shape: 200)                │
+│  Output: [42,78,78,...,0,0,0,0] (shape: 175)                │
 └─────────────────────────┬───────────────────────────────────┘
                           │
 ┌─────────────────────────▼───────────────────────────────────┐
 │  Step 4: Apply to All URLs                                  │
 │  ────────────────────────                                   │
 │  • Process 98,104 URLs                                      │
-│  • Result: X shape (98104, 200)                             │
-│  • Each row = 200 character indices                         │
+│  • Result: X shape (98104, 175)                             │
+│  • Each row = 175 character indices                         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -424,12 +421,13 @@ Berdasarkan evaluasi pada test set (19,621 URL yang belum pernah dilihat model):
 ┌────────────────────────────────────────────────────────────┐
 │                   TEST SET RESULTS                         │
 ├────────────────────────────────────────────────────────────┤
-│  Accuracy:    98.88%                                       │
-│  Precision:   99.49%                                       │
-│  Recall:      98.27%                                       │
-│  F1-Score:    98.88%                                       │
-│  Specificity: 99.50%                                       │
-│  ROC-AUC:     0.9985                                       │
+│  Test Loss:   0.0318                                       │
+│  Accuracy:    99.08%                                       │
+│  Precision:   99.65%                                       │
+│  Recall:      98.51%                                       │
+│  F1-Score:    99.08%                                       │
+│  Specificity: 99.65%                                       │
+│  ROC-AUC:     99.88%                                       │
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -438,64 +436,64 @@ Berdasarkan evaluasi pada test set (19,621 URL yang belum pernah dilihat model):
 ```
                     Predicted
                  Legitimate  Phishing
-Actual  Legitimate    9,762       49
-        Phishing        170    9,640
+Actual  Legitimate    9,777       34
+        Phishing        146    9,664
 
-True Negatives (TN):   9,762  (Correctly identified legitimate)
-False Positives (FP):     49  (Legitimate classified as phishing)
-False Negatives (FN):    170  (Phishing classified as legitimate)
-True Positives (TP):   9,640  (Correctly identified phishing)
+True Negatives (TN):   9,777  (Correctly identified legitimate)
+False Positives (FP):     34  (Legitimate classified as phishing)
+False Negatives (FN):    146  (Phishing classified as legitimate)
+True Positives (TP):   9,664  (Correctly identified phishing)
 ```
 
 ### Interpretasi Hasil
 
 #### ✅ **Strengths (Kekuatan)**
 
-1. **Akurasi Sangat Tinggi (98.88%)**
-   - Model mampu mengklasifikasikan lebih dari 98.8% URL dengan benar
+1. **Akurasi Sangat Tinggi (99.08%)**
+   - Model mampu mengklasifikasikan lebih dari 99% URL dengan benar
    - Konsisten untuk kedua kelas (balanced performance)
-   - Melebihi threshold 98% untuk production-ready system
+   - Melampaui threshold 98% untuk production-ready system
 
-2. **Precision Excellent (99.49%)**
-   - Hanya 0.51% false positives
+2. **Precision Outstanding (99.65%)**
+   - Hanya 0.35% false positives
    - Website legitimate sangat jarang salah diklasifikasi sebagai phishing
    - Sangat penting untuk user experience (minimalisasi false alarm)
-   - Dari 9,689 prediksi phishing, 9,640 benar-benar phishing
+   - Dari 9,698 prediksi phishing, 9,664 benar-benar phishing
 
-3. **Recall Tinggi (98.27%)**
-   - Menangkap 98.27% dari semua phishing URLs
-   - Hanya 170 dari 9,810 phishing URLs yang lolos deteksi
+3. **Recall Tinggi (98.51%)**
+   - Menangkap 98.51% dari semua phishing URLs
+   - Hanya 146 dari 9,810 phishing URLs yang lolos deteksi
    - Critical untuk keamanan user - tingkat deteksi sangat tinggi
 
-4. **Specificity Excellent (99.50%)**
-   - 99.50% legitimate URLs teridentifikasi dengan benar
-   - Hanya 49 false positives dari 9,811 legitimate URLs
+4. **Specificity Outstanding (99.65%)**
+   - 99.65% legitimate URLs teridentifikasi dengan benar
+   - Hanya 34 false positives dari 9,811 legitimate URLs
    - Minimalisasi gangguan pada browsing normal user
 
-5. **ROC-AUC Sangat Tinggi (0.9985)**
-   - Model memiliki kemampuan diskriminasi yang sangat baik
+5. **ROC-AUC Mendekati Sempurna (99.88%)**
+   - Model memiliki kemampuan diskriminasi yang nyaris sempurna
    - Threshold 0.5 sudah optimal
    - Confidence score dapat dipercaya untuk decision making
 
 #### ⚠️ **Limitations (Keterbatasan)**
 
-1. **False Negatives (170 kasus - 1.73%)**
-   - 170 dari 9,810 phishing URLs tidak terdeteksi
+1. **False Negatives (146 kasus - 1.49%)**
+   - 146 dari 9,810 phishing URLs tidak terdeteksi
    - Kemungkinan penyebab:
      - Phishing URL yang sangat mirip dengan domain legitimate populer
      - URL dengan obfuscation atau encoding khusus
      - Phishing baru dengan pattern yang belum pernah dipelajari
      - URL yang sangat pendek dan sederhana
-   - **Impact**: Risiko keamanan jika user mengakses URL ini
+   - **Impact**: Risiko keamanan jika user mengakses URL ini (sangat rendah - hanya 1.49%)
 
-2. **False Positives (49 kasus - 0.50%)**
-   - 49 dari 9,811 legitimate URLs salah teridentifikasi sebagai phishing
+2. **False Positives (34 kasus - 0.35%)**
+   - 34 dari 9,811 legitimate URLs salah teridentifikasi sebagai phishing
    - Kemungkinan penyebab:
      - URL legitimate dengan struktur kompleks atau panjang
      - Subdomain yang tidak umum atau suspicious-looking
      - URL shortener atau redirect service
      - URL dengan banyak parameter atau query strings
-   - **Impact**: User experience terganggu dengan warning yang tidak perlu (minimal)
+   - **Impact**: User experience terganggu dengan warning yang tidak perlu (sangat minimal)
 
 3. **Ketergantungan pada Panjang URL**
    - URLs > 200 karakter di-truncate
@@ -520,10 +518,10 @@ Semua hasil visualisasi tersimpan di folder `results/`:
 ### Temuan Utama
 
 1. **Efektivitas Pendekatan Raw URL**
-   - Pendekatan character-level CNN-LSTM terbukti sangat efektif dengan **akurasi 98.88%**
+   - Pendekatan character-level CNN-LSTM terbukti sangat efektif dengan **akurasi 99.08%**
    - Model berhasil belajar pattern URL phishing secara otomatis tanpa feature engineering manual
    - Performa **superior** dibanding metode feature-based tradisional (biasanya 95-97%)
-   - Precision 99.49% menunjukkan model sangat reliable dalam prediksi phishing
+   - Precision 99.65% menunjukkan model sangat reliable dalam prediksi phishing
 
 2. **Keunggulan Arsitektur Hybrid CNN-LSTM**
    - CNN berhasil mengekstrak local patterns (n-grams) seperti "login", "verify", "secure"
@@ -531,10 +529,10 @@ Semua hasil visualisasi tersimpan di folder `results/`:
    - Kombinasi keduanya memberikan representasi yang kaya untuk klasifikasi
 
 3. **Robustness dan Generalisasi**
-   - Model menunjukkan performa konsisten pada test set (98.88% accuracy)
-   - Balanced performance untuk kedua kelas (Precision 98.29% vs 99.49%)
-   - ROC-AUC 0.9985 menunjukkan kemampuan diskriminasi yang sangat baik
-   - False positive rate hanya 0.50% - sangat rendah untuk production system
+   - Model menunjukkan performa konsisten pada test set (99.08% accuracy)
+   - Balanced performance untuk kedua kelas (Precision/Specificity 99.65% untuk kedua kelas)
+   - ROC-AUC 99.88% menunjukkan kemampuan diskriminasi yang nyaris sempurna
+   - False positive rate hanya 0.35% - sangat rendah untuk production system
 
 4. **Explainability dengan SHAP**
    - Berhasil mengidentifikasi posisi dan karakter yang paling berpengaruh
@@ -620,9 +618,9 @@ Semua hasil visualisasi tersimpan di folder `results/`:
 
 ### Kesimpulan Akhir
 
-Penelitian ini membuktikan bahwa pendekatan **raw URL dengan deep learning** merupakan solusi yang efektif, efisien, dan scalable untuk deteksi phishing. Dengan **akurasi 98.88%**, **precision 99.49%**, dan **ROC-AUC 0.9985**, model CNN-LSTM berhasil mengungguli metode feature-based tradisional secara signifikan. Integrasi SHAP analysis memberikan transparansi yang diperlukan untuk deployment di aplikasi security critical.
+Penelitian ini membuktikan bahwa pendekatan **raw URL dengan deep learning** merupakan solusi yang efektif, efisien, dan scalable untuk deteksi phishing. Dengan **akurasi 99.08%**, **precision 99.65%**, dan **ROC-AUC 99.88%**, model CNN-LSTM berhasil mengungguli metode feature-based tradisional secara signifikan. Integrasi SHAP analysis memberikan transparansi yang diperlukan untuk deployment di aplikasi security critical.
 
-Dengan false positive rate hanya 0.50% dan detection rate 98.27%, model ini siap untuk diimplementasikan dalam sistem keamanan real-world dengan potensi untuk melindungi jutaan user dari serangan phishing yang semakin sophisticated.
+Dengan false positive rate hanya 0.35% dan detection rate 98.51%, model ini siap untuk diimplementasikan dalam sistem keamanan real-world dengan potensi untuk melindungi jutaan user dari serangan phishing yang semakin sophisticated.
 
 ---
 
